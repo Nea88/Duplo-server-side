@@ -1,5 +1,13 @@
 if [ "$OSTYPE" = "msys" ]; then
-   cp duplo /bin/
+    echo "Cant use in windows"
+    exit 0
 else
-   sudo cp duplo /bin/
+    DOKKU_PLUGINS_DIR=/var/lib/dokku/plugins
+    sudo cp duplo /bin/
+    sudo apt-get install mysql mysqdump
+    git clone https://github.com/Nea88/dokku_mysql_wp_plugin.git $DOKKU_PLUGINS_DIR/wp
+    git clone https://github.com/Nea88/dokku_mysql_dump-plugin.git $DOKKU_PLUGINS_DIR/mysql_dump
+    git clone https://github.com/Nea88/dokku_mysql_wp_plugin.git $DOKKU_PLUGINS_DIR/wp
+    git clone https://github.com/Nea88/dokku-domains-plugin.git $DOKKU_PLUGINS_DIR/domains
+    dokku plugins-install
 fi
