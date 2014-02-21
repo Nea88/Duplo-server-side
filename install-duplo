@@ -1,0 +1,5 @@
+if [ "$OSTYPE" = "msys" ]; then
+   cp duplo /bin/
+else
+   sudo cp duplo /bin/
+fi
