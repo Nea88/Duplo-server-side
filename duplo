@@ -1,0 +1,50 @@
+#/!/bin/bash
+set -e;
+
+DOKKU_ROOT="/home/dokku"
+
+case "$1" in
+
+  add_dump)
+        if [ -z $2 ]; then
+            echo "You must specify app name"
+        fi
+        APP_NAME=$2
+        dokku mysql_dump:save_to_path $APP_NAME /tmp/$APP_NAME.sql
+
+        for PROJECT in "$DOKKU_ROOT/$APP_NAME*"; do
+            echo $PROJECT
+            if [ -f $PROJECT/PROJECT_NAME ]; then
+                echo "Project name file exists"
+                PROJECT_NAME=$(cat $PROJECT/PROJECT_NAME)
+                if [ $PROJECT_NAME = $APP_NAME ]; then
+                    git clone $PROJECT "/tmp/$PROJECT_NAME"
+                    cd /tmp/$PROJECT_NAME
+                    cp /tmp/$APP_NAME.sql /tmp/$PROJECT_NAME/
+                    git add $APP_NAME.sql
+                    git commit -m "added dump with date + `date "+%Y-%m-%d-%T"`" || echo "DB dump is up to date"
+                    git push origin master
+                    rm -rf /tmp/$PROJECT_NAME/
+                fi
+            fi
+        done
+        rm /tmp/$APP_NAME.sql
+    ;;
+    
+    add_all_dumps)
+        echo "----> Saving all dumps"
+        IMAGES=$(docker ps -a | grep "mysql" |  awk '{print $2}')
+        echo "-----> List mysql images"
+        echo $IMAGES
+        for image in $IMAGES
+        do
+            image=${image#mysql/}
+            image=${image%:latest}
+            echo "working with $image"
+
+            duplo add_dump $image
+        done
+    ;;
+
+esac
+
