@@ -8,6 +8,7 @@ case "$1" in
   add_dump)
         if [ -z $2 ]; then
             echo "You must specify app name"
+            exit 0;
         fi
         APP_NAME=$2
         dokku mysql_dump:save_to_path $APP_NAME /tmp/$APP_NAME.sql
@@ -44,6 +45,27 @@ case "$1" in
 
             duplo add_dump $image
         done
+    ;;
+    
+    broom)
+        if [ -z $2 ]; then
+            echo "----! You must specify user name"
+            exit 0
+        fi
+        if [ -z $3 ]; then
+            echo "----! You must specify app name"
+            exit 0
+        fi        
+        echo "----> Clean up starting"
+        USER_NAME=$2
+        APP_NAME=$3
+        IDS=$(docker ps -a | grep "app/$APP_NAME-$USER_NAME" |  awk '{print $1}')
+    
+        for ID in $IDS
+        do
+            docker stop $ID
+        done
+        echo "----> Clean up completed"
     ;;
 
 esac
